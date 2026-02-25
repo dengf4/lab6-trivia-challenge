@@ -206,6 +206,38 @@
 
   NOTE:
   - Use textContent when showing user data.
+
+  Short-Answer Questions
+
+  Why do we need async/await when using fetch()?
+
+  Fetching from an API involves making an asynchronous request: it waits for a response from the server. 
+  Async functions use the await keyword, which pauses the execution of the function until the promise is 
+  resolved, allowing other processes to run/load while waiting for the response.
+
+  What does OpenTDB response_code mean in your implementation? Explain 0 and 5.
+
+  The response_code refers to the status of the API request. 0 indicates that the request was successful and 
+  the data was returned from the API. 5 indicates a rate limit error which indicates that too many requests were 
+  made in a short time period and that the client must wait before making more requests.
+
+  What exactly is stored under STORAGE_KEY and why is JSON used?
+
+  A JSON string representing an object that contains the player's best score, the total number of questions, 
+  and the number of attempts made is stored under STORAGE_KEY. JSON is used as localStorage only stores strings.
+  The JSON method stringify() converts the object into a string format for storage; JSON.parse() converts the 
+  string back to an object when retrieving the data.
+
+  Describe what happens from clicking Start Quiz until the first question is displayed (mention the functions involved).
+
+  When the Start Quiz button is clicked, the async function runRoundFlow() is called, which validates the form 
+  inputs using validateStartForm(). If the form is valid, it calls startFromForm(), which reads the form input values 
+  into the state.player object. Then, it initializes the initial quiz state and display by calling the beginRound() and 
+  showOnly() functions. Next, setLoading() displays a loading indicator while attempt is made to fetch a token using getToken() 
+  if one is not already stored in state.token. When the token is fetched, fetchQuestions() is called to retrieve questions from 
+  the OpenTDB API. If the request is successful, it converts the API data into an internal format, hides the loading indicator, 
+  and calls renderQuestion() to display the first question on the quiz screen. Unresolved promises and network or API errors 
+  are caught and displayed using setApiError().
 */
 
 (function () {
@@ -410,11 +442,11 @@
     // - if (!data.token) throw Error(...)
     // - return data.token
 
-    let res = await fetch(API.token);
+    const res = await fetch(API.token);
     if (!res.ok) {
       throw new Error("Could not fetch token (HTTP status: " + res.status + ").");
     }
-    let data = await res.json();
+    const data = await res.json();
     if (!data.token) {
       throw new Error("Token is missing.");
     }
@@ -432,12 +464,12 @@
     //   0 -> return results
     //   5 -> throw rate limit error
     //   else -> throw generic error
-      let url = API.questionsUrl(cfg.amount, cfg.difficulty, state.player.category, state.token);
-      let res = await fetch(url);
+      const url = API.questionsUrl(cfg.amount, cfg.difficulty, state.player.category, state.token);
+      const res = await fetch(url);
       if (!res.ok) {
         throw new Error("Error fetching questions (HTTP status: " + res.status + ").");
       }
-      let data = await res.json();
+      const data = await res.json();
       if (data.response_code === 0) {
         return data.results;
       } else if (data.response_code === 5) {
